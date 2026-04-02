@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@layer base {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+body {
+  @apply bg-[#f8fafc] text-slate-900;
+  background-image: 
+    radial-gradient(at 0% 0%, hsla(253,16%,7%,0) 0, transparent 50%), 
+    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.05) 0, transparent 50%), 
+    radial-gradient(at 100% 0%, hsla(339,49%,30%,0.05) 0, transparent 50%);
+}
+
+.glass-card {
+  @apply bg-white/70 backdrop-blur-md border border-white shadow-sm;
+}
+
+.creative-shadow {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+}
+
+.neon-border {
+  @apply relative;
+}
+
+.neon-border::after {
+  content: '';
+  @apply absolute -inset-[1px] bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[inherit] -z-10 opacity-20;
+}

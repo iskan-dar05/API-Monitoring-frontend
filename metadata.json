@@ -1,0 +1,5 @@
+{
+  "name": "API Sentinel",
+  "description": "A high-performance API monitoring and debugging dashboard for real-time log analysis and performance tracking.",
+  "requestFramePermissions": []
+}
