@@ -56,6 +56,13 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+
+    const fetchData = async () => {
+      fetch("http://127")
+    }
+  })
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-500/10">
       {/* Sidebar */}
