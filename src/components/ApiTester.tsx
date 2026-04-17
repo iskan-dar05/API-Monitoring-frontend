@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Send, Plus, Trash2, Code, Settings2, Globe, Shield, Terminal } from 'lucide-react';
 import { HttpMethod } from '../types';
 import { cn } from '../lib/utils';
+import api from '../lib/axios'
+
 
 interface HeaderRow {
   id: string;
@@ -18,7 +20,7 @@ export const ApiTester: React.FC = () => {
     { id: '1', key: 'Content-Type', value: 'application/json', enabled: true },
     { id: '2', key: 'Accept', value: 'application/json', enabled: true }
   ]);
-  const [body, setBody] = useState('{\n  "name": "John Doe",\n  "email": "john@example.com"\n}');
+  const [body, setBody] = useState();
   const [activeTab, setActiveTab] = useState<'headers' | 'body'>('headers');
   const [isSending, setIsSending] = useState(false);
   const [response, setResponse] = useState<any>(null);
@@ -37,25 +39,41 @@ export const ApiTester: React.FC = () => {
 
   const handleSend = async () => {
     setIsSending(true);
-    // Simulate API call to Laravel backend
-    setTimeout(() => {
-      setResponse({
-        status: 200,
-        time: '124ms',
-        size: '1.2 KB',
-        data: {
-          success: true,
-          message: "Request processed by Laravel Sentinel Middleware",
-          echo: {
-            method,
-            url,
-            headers: headers.filter(h => h.enabled).reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {}),
-            body: method !== 'GET' ? JSON.parse(body || '{}') : null
-          }
-        }
-      });
-      setIsSending(false);
-    }, 1000);
+    
+    try{
+
+    const res = await api.post('/api/send-request', {
+      url,
+      method,
+      headers: 
+    });
+    console.log(res.data);
+
+    // setTimeout(() => {
+    //   setResponse({
+    //     status: 200,
+    //     time: '124ms',
+    //     size: '1.2 KB',
+    //     data: {
+    //       success: true,
+    //       message: "Request processed by Laravel Sentinel Middleware",
+    //       echo: {
+    //         method,
+    //         url,
+    //         headers: headers.filter(h => h.enabled).reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {}),
+    //         body: method !== 'GET' ? JSON.parse(body || '{}') : null
+    //       }
+    //     }
+    //   });
+    //   setIsSending(false);
+    // }, 1000);
+    }catch(error)
+    {
+      console.log(error)
+      setIsSending(false)
+    }finally{
+      setIsSending(false)
+    }
   };
 
   return (

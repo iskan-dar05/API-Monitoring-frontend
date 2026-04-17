@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Toaster } from "react-hot-toast";
 import { 
   Activity, 
   LayoutDashboard, 
@@ -23,11 +24,16 @@ import { LogDetails } from './components/LogDetails';
 import { TrafficChart, LatencyChart } from './components/Charts';
 import { ApiTester } from './components/ApiTester';
 import { cn, formatLatency } from './lib/utils';
+import Login from "./components/Login";
+import Register from "./components/Register";
+import api from './lib/axios'
 
 export default function App() {
   const [logs, setLogs] = useState<ApiLog[]>(MOCK_LOGS);
   const [selectedLog, setSelectedLog] = useState<ApiLog | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'logs' | 'tester'>('dashboard');
+  const [page, setPage] = useState<Page>('login');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({
     totalRequests: 12450,
     errorRate: 1.2,
@@ -35,6 +41,20 @@ export default function App() {
     p95Latency: 420,
     requestsPerMinute: 85
   });
+
+  useEffect(() => {
+  const checkAuth = async () => {
+    try {
+      await api.get("/api/user"); // protected route
+      setIsAuthenticated(true);
+      setPage("dashboard");
+    } catch {
+      setIsAuthenticated(false);
+    }
+  };
+
+  checkAuth();
+}, []);
 
   // Simulate real-time logs
   useEffect(() => {
@@ -56,16 +76,38 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-
+useEffect(() => {
+    if (!isAuthenticated) return;
     const fetchData = async () => {
-      fetch("http://127")
+      const res = await api.get("/api/dashboard");
+      console.log(res.data);
     }
-  })
+
+    fetchData()
+  }, [isAuthenticated])
+
+  if(!isAuthenticated){
+    if(page === "login")
+    {
+      return (
+        <Login
+          onLogin={() => {
+            setIsAuthenticated(true);
+            setPage("dashboard");
+          }}
+          goRegister={() => setPage("register")}
+        />
+      );
+    }
+    if(page === "register"){
+      return <Register goLogin={()=>setPage("login")} />;
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-500/10">
       {/* Sidebar */}
+      <Toaster position="top-right" reverseOrder={false} />
       <aside className="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-100 hidden lg:flex flex-col z-40">
         <div className="p-8 flex items-center gap-3">
           <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-500/20 rotate-3">
