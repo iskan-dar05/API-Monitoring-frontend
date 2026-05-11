@@ -6,23 +6,25 @@ export default function Login({ onLogin, goRegister }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {
-    try {
-      await api.get('/sanctum/csrf-cookie'); // get CSRF
+const handleLogin = async () => {
+  try {
+    await api.get("/sanctum/csrf-cookie");
 
-      const res = await api.post("/api/auth/login", {
-        email,
-        password
-      });
+    await api.post("/api/auth/login", {
+      email,
+      password
+    });
 
-      const data = res.data;
+    // verify session from backend
+    const user = await api.get("/api/user");
 
-      toast.success(data.message);
-      onLogin();
-
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed");
+    if (user.data) {
+      onLogin(); // only now trust login
     }
+
+  } catch (err) {
+    toast.error("Login failed");
+  }
 };
 
   return (

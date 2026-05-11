@@ -1,4 +1,6 @@
 import { useState } from "react";
+import api from '../lib/axios';
+ 
 
 export default function Register({ goLogin }) {
   const [name, setName] = useState("");
@@ -6,24 +8,29 @@ export default function Register({ goLogin }) {
   const [password, setPassword] = useState("");
 
   const handleRegister = async () => {
-    const res = await fetch("http://127.0.0.1:8000/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ name, email, password })
+  try {
+    // Get CSRF cookie first
+    await api.get("/sanctum/csrf-cookie");
+
+    const res = await api.post("/api/auth/register", {
+      name,
+      email,
+      password,
     });
 
-    const data = await res.json();
+    console.log(res.data);
 
-    if (res.ok) {
-      alert("Registered successfully");
-      goLogin();
-    } else {
-      alert(data.message);
-    }
-  };
+    alert("Registered successfully");
+    goLogin();
 
+  } catch (err: any) {
+    console.log(err);
+
+    alert(
+      err.response?.data?.message || "Registration failed"
+    );
+  }
+};
   return (
     <div className="flex items-center justify-center h-screen">
       <div className="p-8 bg-white rounded-xl shadow w-96 space-y-4">

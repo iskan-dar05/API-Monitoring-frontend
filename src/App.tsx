@@ -33,7 +33,7 @@ export default function App() {
   const [selectedLog, setSelectedLog] = useState<ApiLog | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'logs' | 'tester'>('dashboard');
   const [page, setPage] = useState<Page>('login');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [stats, setStats] = useState<DashboardStats>({
     totalRequests: 12450,
     errorRate: 1.2,
@@ -42,14 +42,27 @@ export default function App() {
     requestsPerMinute: 85
   });
 
-  useEffect(() => {
+useEffect(() => {
   const checkAuth = async () => {
     try {
-      await api.get("/api/user"); // protected route
-      setIsAuthenticated(true);
-      setPage("dashboard");
-    } catch {
+      const res = await api.get("/api/user");
+
+      console.log("AUTH RESPONSE:", res.data);
+
+      if (res.data) {
+        setIsAuthenticated(true);
+        setPage("dashboard");
+        return; // IMPORTANT
+      }
+
       setIsAuthenticated(false);
+      setPage("login");
+
+    } catch (err) {
+      console.log("AUTH ERROR:", err);
+
+      setIsAuthenticated(false);
+      setPage("login");
     }
   };
 
@@ -81,28 +94,43 @@ useEffect(() => {
     const fetchData = async () => {
       const res = await api.get("/api/dashboard");
       console.log(res.data);
+      setStats({
+        totalRequests: res.data.totalRequests,
+        errorRate: res.data.errorRate,
+        avgLatency: res.data.avgLatency,
+        p95Latency: 420,
+        requestsPerMinute: res.data.rpm[0]["requests_per_minute"]
+      })
     }
 
     fetchData()
   }, [isAuthenticated])
 
-  if(!isAuthenticated){
-    if(page === "login")
-    {
-      return (
-        <Login
-          onLogin={() => {
-            setIsAuthenticated(true);
-            setPage("dashboard");
-          }}
-          goRegister={() => setPage("register")}
-        />
-      );
-    }
-    if(page === "register"){
-      return <Register goLogin={()=>setPage("login")} />;
-    }
+
+
+if (!isAuthenticated) {
+  if (page === "login") {
+    return (
+      <Login
+        onLogin={() => {
+          setIsAuthenticated(true);
+          setPage("dashboard");
+        }}
+        goRegister={() => setPage("register")}
+      />
+    );
   }
+
+  if (page === "register") {
+    return (
+      <Register
+        goLogin={() => setPage("login")}
+      />
+    );
+  }
+}
+
+ 
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-500/10">

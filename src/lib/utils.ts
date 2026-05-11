@@ -12,7 +12,7 @@ export function formatLatency(ms: number): string {
 }
 
 export function getStatusColor(status: number): string {
-  if (status >= 200 && status < 300) return "text-emerald-600 bg-emerald-50 border-emerald-200";
+  if (status >= 200 && status < 300) return "text-green-600 bg-green-50 border-green-200";
   if (status >= 300 && status < 400) return "text-blue-600 bg-blue-50 border-blue-200";
   if (status >= 400 && status < 500) return "text-amber-600 bg-amber-50 border-amber-200";
   if (status >= 500) return "text-rose-600 bg-rose-50 border-rose-200";

@@ -4,6 +4,9 @@ import { Send, Plus, Trash2, Code, Settings2, Globe, Shield, Terminal } from 'lu
 import { HttpMethod } from '../types';
 import { cn } from '../lib/utils';
 import api from '../lib/axios'
+import { formatLatency } from '../lib/utils';
+
+
 
 
 interface HeaderRow {
@@ -20,7 +23,7 @@ export const ApiTester: React.FC = () => {
     { id: '1', key: 'Content-Type', value: 'application/json', enabled: true },
     { id: '2', key: 'Accept', value: 'application/json', enabled: true }
   ]);
-  const [body, setBody] = useState();
+  const [body, setBody] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'headers' | 'body'>('headers');
   const [isSending, setIsSending] = useState(false);
   const [response, setResponse] = useState<any>(null);
@@ -37,40 +40,75 @@ export const ApiTester: React.FC = () => {
     setHeaders(headers.map(h => h.id === id ? { ...h, [field]: val } : h));
   };
 
+  const parseBody = (body: string) => {
+  if (!body.trim()) return null;
+    try {
+        return JSON.parse(body);
+    } catch (e) {
+        throw new Error("Invalid JSON format");
+    }
+  };
+
+
+
   const handleSend = async () => {
+     if (!url) {
+      alert("URL is required");
+      return;
+    }
     setIsSending(true);
     
     try{
 
-    const res = await api.post('/api/send-request', {
+    let parsedBody = null;
+
+    if (method !== 'GET') {
+      parsedBody = parseBody(body);
+    }
+
+    const formattedHeaders = Object.fromEntries(
+      headers
+        .filter(h => h.enabled && h.key)
+        .map(h => [h.key, h.value])
+    );
+
+    const payload: any = {
       url,
       method,
-      headers: 
-    });
-    console.log(res.data);
+      headers: formattedHeaders,
+    };
 
-    // setTimeout(() => {
-    //   setResponse({
-    //     status: 200,
-    //     time: '124ms',
-    //     size: '1.2 KB',
-    //     data: {
-    //       success: true,
-    //       message: "Request processed by Laravel Sentinel Middleware",
-    //       echo: {
-    //         method,
-    //         url,
-    //         headers: headers.filter(h => h.enabled).reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {}),
-    //         body: method !== 'GET' ? JSON.parse(body || '{}') : null
-    //       }
-    //     }
-    //   });
-    //   setIsSending(false);
-    // }, 1000);
-    }catch(error)
-    {
-      console.log(error)
-      setIsSending(false)
+    if (method !== 'GET') {
+      payload.body = parsedBody;
+    }
+
+
+    const res = await api.post('/api/send-request', payload);
+
+
+    const timeMs = Number(res.data.time) * 1000;
+
+    setResponse({
+      status: res.data.status,
+      time: formatLatency(timeMs),
+      headers: res.data.headers,
+      body: res.data.body,
+      message: res.data.message
+
+
+    })
+    console.log(res.data);
+    }catch (error: any) {
+      if (error.message === "Invalid JSON format") {
+        alert("❌ Invalid JSON in body");
+      } else {
+        setResponse({
+          status: error.response?.status || 500,
+          time: '0ms',
+          size: '0 KB',
+          data: error.response?.data || { message: error.message }
+        });
+      }
     }finally{
       setIsSending(false)
     }
@@ -247,7 +285,7 @@ export const ApiTester: React.FC = () => {
                 <span className="flex items-center gap-1.5">
                   Status: <span className={cn(
                     "px-1.5 py-0.5 rounded border",
-                    response.status === 200 ? "text-emerald-600 bg-emerald-50 border-emerald-100" : "text-rose-600 bg-rose-50 border-rose-100"
+                    response.status >= 200 && response.status <= 301 ? "text-emerald-600 bg-emerald-50 border-emerald-100" : "text-rose-600 bg-rose-50 border-rose-100"
                   )}>{response.status}</span>
                 </span>
                 <span>Time: <span className="text-slate-800">{response.time}</span></span>
@@ -257,7 +295,16 @@ export const ApiTester: React.FC = () => {
 
             <div className="glass-card rounded-2xl p-6 creative-shadow bg-white">
               <pre className="text-xs font-mono text-slate-700 overflow-x-auto">
-                {JSON.stringify(response.data, null, 2)}
+                {JSON.stringify(
+                  {
+                    status: response.status,
+                    message: response.message,
+                    body: response.body,
+                    headers: response.headers
+                  },
+                  null,
+                  2
+                )}
               </pre>
             </div>
           </motion.div>
