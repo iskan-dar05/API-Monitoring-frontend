@@ -2,22 +2,13 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS'
 
 export interface ApiLog {
   id: string;
-  timestamp: string;
+  created_at: string;
   method: HttpMethod;
-  path: string;
+  url: string;
   status: number;
-  latency: number;
-  request: {
-    headers: Record<string, string>;
-    body?: any;
-    query?: Record<string, string>;
-  };
-  response: {
-    headers: Record<string, string>;
-    body?: any;
-  };
-  clientIp: string;
-  userAgent: string;
+  duration: number;
+  headers: string;
+  body: string;
 }
 
 export interface DashboardStats {

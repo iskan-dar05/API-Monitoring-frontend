@@ -80,24 +80,21 @@ export const LogList: React.FC<LogListProps> = ({ logs, onSelectLog, selectedLog
                 <td className="px-6 py-4">
                   <div className="flex flex-col">
                     <span className="text-xs font-mono font-medium text-slate-700 truncate max-w-[240px]">
-                      {log.path}
-                    </span>
-                    <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                      <Globe className="w-2.5 h-2.5" /> {log.clientIp}
+                      {log.url}
                     </span>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <span className={cn(
                     "text-xs font-mono font-bold",
-                    log.latency > 500 ? "text-rose-500" : log.latency > 200 ? "text-amber-500" : "text-slate-500"
+                    log.duration > 500 ? "text-rose-500" : log.duration > 200 ? "text-amber-500" : "text-slate-500"
                   )}>
-                    {formatLatency(log.latency)}
+                    {formatLatency(log.duration)}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <span className="text-[10px] font-medium text-slate-400">
-                    {format(new Date(log.timestamp), 'HH:mm:ss')}
+                    {log.created_at}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right">

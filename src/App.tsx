@@ -18,7 +18,7 @@ import {
   Terminal
 } from 'lucide-react';
 import { ApiLog, DashboardStats } from './types';
-import { MOCK_LOGS, MOCK_CHART_DATA } from './mockData';
+import { MOCK_CHART_DATA } from './mockData';
 import { LogList } from './components/LogList';
 import { LogDetails } from './components/LogDetails';
 import { TrafficChart, LatencyChart } from './components/Charts';
@@ -29,7 +29,7 @@ import Register from "./components/Register";
 import api from './lib/axios'
 
 export default function App() {
-  const [logs, setLogs] = useState<ApiLog[]>(MOCK_LOGS);
+  const [logs, setLogs] = useState<ApiLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<ApiLog | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'logs' | 'tester'>('dashboard');
   const [page, setPage] = useState<Page>('login');
@@ -70,36 +70,37 @@ useEffect(() => {
 }, []);
 
   // Simulate real-time logs
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newLog: ApiLog = {
-        id: Math.random().toString(36).substr(2, 9),
-        timestamp: new Date().toISOString(),
-        method: ['GET', 'POST', 'PUT', 'DELETE'][Math.floor(Math.random() * 4)] as any,
-        path: ['/api/v1/users', '/api/v1/posts', '/api/v1/auth/login', '/api/v1/analytics'][Math.floor(Math.random() * 4)],
-        status: [200, 201, 204, 400, 401, 404, 500][Math.floor(Math.random() * 7)],
-        latency: Math.floor(Math.random() * 800) + 20,
-        request: { headers: { 'Accept': 'application/json' } },
-        response: { headers: { 'Content-Type': 'application/json' } },
-        clientIp: `192.168.1.${Math.floor(Math.random() * 255)}`,
-        userAgent: 'Mozilla/5.0...'
-      };
-      setLogs(prev => [newLog, ...prev].slice(0, 50));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  // useEffect(() => {
+  //   // const interval = setInterval(() => {
+  //   //   const newLog: ApiLog = {
+  //   //     id: Math.random().toString(36).substr(2, 9),
+  //   //     timestamp: new Date().toISOString(),
+  //   //     method: ['GET', 'POST', 'PUT', 'DELETE'][Math.floor(Math.random() * 4)] as any,
+  //   //     path: ['/api/v1/users', '/api/v1/posts', '/api/v1/auth/login', '/api/v1/analytics'][Math.floor(Math.random() * 4)],
+  //   //     status: [200, 201, 204, 400, 401, 404, 500][Math.floor(Math.random() * 7)],
+  //   //     latency: Math.floor(Math.random() * 800) + 20,
+  //   //     request: { headers: { 'Accept': 'application/json' } },
+  //   //     response: { headers: { 'Content-Type': 'application/json' } },
+  //   //     clientIp: `192.168.1.${Math.floor(Math.random() * 255)}`,
+  //   //     userAgent: 'Mozilla/5.0...'
+  //   //   };
+  //   //   setLogs(prev => [newLog, ...prev].slice(0, 50));
+  //   // }, 5000);
+  //   return () => clearInterval(interval);
+  // }, []);
 
 useEffect(() => {
     if (!isAuthenticated) return;
     const fetchData = async () => {
       const res = await api.get("/api/dashboard");
       console.log(res.data);
+      setLogs(res.data.logs)
       setStats({
         totalRequests: res.data.totalRequests,
         errorRate: res.data.errorRate,
         avgLatency: res.data.avgLatency,
         p95Latency: 420,
-        requestsPerMinute: res.data.rpm[0]["requests_per_minute"]
+        requestsPerMinute: res.data.rpm.length > 0 ? res.data.rpm[0]["requests_per_minute"] : 0
       })
     }
 
@@ -185,7 +186,6 @@ if (!isAuthenticated) {
                 <User className="w-5 h-5 text-slate-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-black text-slate-900 truncate">Admin User</p>
                 <p className="text-[10px] font-medium text-slate-500 truncate">skous2034@gmail.com</p>
               </div>
             </div>
@@ -207,7 +207,7 @@ if (!isAuthenticated) {
             <div className="hidden md:flex items-center gap-3">
               <div className="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-widest">Project</div>
               <div className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                Laravel Backend <ChevronDown className="w-4 h-4 text-slate-400" />
+                API Monitoring and Debugging Platform
               </div>
             </div>
           </div>
@@ -221,10 +221,6 @@ if (!isAuthenticated) {
                 className="pl-11 pr-6 py-2.5 bg-slate-50 border border-slate-100 rounded-full text-sm text-slate-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-200 w-72 transition-all"
               />
             </div>
-            <button className="relative p-2.5 bg-slate-50 border border-slate-100 rounded-full text-slate-400 hover:text-indigo-600 transition-all">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white"></span>
-            </button>
           </div>
         </header>
 
